@@ -89,8 +89,12 @@ export default function Page() {
 
         <CourseList courses={filtered} onApply={(course) => setSelectedCourse(course)} />
       </main>
-
-      <SignupModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+      {true ? (
+        <SignupModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+      ) : (
+        <div className=""></div>
+        // <LoginModal onClose={() => setSelectedCourse(null)} />
+      )}
     </>
   )
 }

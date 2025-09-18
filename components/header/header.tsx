@@ -3,7 +3,7 @@ import { Button } from '../ui/button'
 
 export default function Header() {
   return (
-    <header className="bg-blue-800 text-white shadow-sm">
+    <header className="bg-[#0574ac] text-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-40 items-center justify-center rounded-lg bg-white font-bold">
