@@ -1,9 +1,11 @@
 'use client'
 import CourseList from '@/components/courseList/CourseList'
 import Header from '@/components/header/header'
+import LoginModal from '@/components/LoginModal/Modal'
 import SignupModal from '@/components/SignupModal/Modal'
 import { Input } from '@/components/ui/input'
 import { Course } from '@/utils/types/course'
+import { AnimatePresence } from 'framer-motion'
 import React, { useState } from 'react'
 
 const sampleCourses: Course[] = [
@@ -59,6 +61,7 @@ const sampleCourses: Course[] = [
 
 export default function Page() {
   const [query, setQuery] = useState('')
+  const [subscribe, setSubscribe] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
 
   const filtered = sampleCourses.filter((c) =>
@@ -89,12 +92,23 @@ export default function Page() {
 
         <CourseList courses={filtered} onApply={(course) => setSelectedCourse(course)} />
       </main>
-      {true ? (
-        <SignupModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
-      ) : (
-        <div className=""></div>
-        // <LoginModal onClose={() => setSelectedCourse(null)} />
-      )}
+      <AnimatePresence mode="wait">
+        {subscribe ? (
+          <LoginModal
+            key="login-modal"
+            isSubscribe={() => setSubscribe(false)}
+            course={selectedCourse}
+            onClose={() => setSelectedCourse(null)}
+          />
+        ) : (
+          <SignupModal
+            key="signup-modal"
+            isSubscribe={() => setSubscribe(true)}
+            course={selectedCourse}
+            onClose={() => setSelectedCourse(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
