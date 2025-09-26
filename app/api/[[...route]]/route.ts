@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 import profile from './profile'
-
-export const runtime = 'edge';
 
 const app = new Hono().basePath('/api');
 

@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  name           String
+  fatherName     String
+  motherName     String
+  highSchoolType HighSchoolType
+  graduationYear String // pode ser mantido como String para regex, ou Int se preferir
+  ethnicity      Ethnicity
+  disability     Disability?
+  rg             String
+  cpf            String         @unique
+  phone          String
+  cep            String
+  street         String
+  number         String
+  complement     String?
+  district       String
+  city           String
+  uf             String         @db.Char(2)
+  email          String         @unique
+  password       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+/// enums baseados no seu Zod schema
+enum HighSchoolType {
+  private
+  public
+}
+
+enum Ethnicity {
+  pardo
+  negro
+  branco
+  amarela
+  indigena
+}
+
+enum Disability {
+  transtorno_global_do_desenvolvimento
+  transtorno_do_expectro_autista
+  deficiencia_visual
+  deficiencia_motora
+  deficiencia_auditiva
+  paralisia_cerebral
+}
