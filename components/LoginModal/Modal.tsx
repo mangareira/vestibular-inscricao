@@ -1,11 +1,14 @@
 import { Course } from '@/utils/types/course'
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { useForm } from 'react-hook-form'
 import { FormField } from '../ui/formField'
 import loginSchema, { LoginForm } from '@/utils/schemas/login.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { client } from '@/lib/hono'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
 export default function LoginModal({
   course,
@@ -17,6 +20,7 @@ export default function LoginModal({
   isSubscribe: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const [isLoading, setLoading] = useState(false)
   const { register, handleSubmit } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
@@ -27,14 +31,30 @@ export default function LoginModal({
     if (typeof window !== 'undefined') {
       document.body.style.overflowY = 'auto'
     }
-    console.log(open, course)
-
     return null
   }
   document.body.style.overflowY = 'hidden'
 
-  const onSubmit = (data: LoginForm) => {
-    console.log(data)
+  const onSubmit = async (data: LoginForm) => {
+    setLoading(true)
+
+    const res = await client.api.profile.login.$post({ json: data })
+    const json = await res.json()
+
+    if (res.status !== 200) {
+      setLoading(false)
+      return toast('Erro no login', {
+        position: 'top-right',
+        description: <span className="text-red-500">{json.message}</span>,
+      })
+    }
+
+    setLoading(false)
+    onClose()
+    return toast('Login realizado com sucesso', {
+      position: 'top-right',
+      description: <span className="text-green-500">{json.message}</span>,
+    })
   }
 
   return (
@@ -68,9 +88,10 @@ export default function LoginModal({
           <Button
             type="submit"
             form="login-form"
-            className="rounded-md bg-emerald-600 px-4 py-2 text-white"
+            className={`rounded-md bg-emerald-600 px-4 py-2 text-white ${isLoading ? 'bg-green-300' : null}`}
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? <Loader2 className="animate-spin" size={24} /> : 'Login'}
           </Button>
         </div>
       </CardFooter>

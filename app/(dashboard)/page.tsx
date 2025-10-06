@@ -68,7 +68,7 @@ export default function Page() {
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
   )
-  const MotionCard = motion(Card)
+  const MotionCard = motion.create(Card)
 
   return (
     <>

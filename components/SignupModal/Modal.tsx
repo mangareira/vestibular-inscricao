@@ -1,6 +1,6 @@
 import { Course } from '@/utils/types/course'
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { FormField } from '../ui/formField'
@@ -66,10 +66,12 @@ export default function SignupModal({
   const onSubmit = async (data: SignUpForm) => {
     const res = await client.api.profile.create.$post({ json: data })
     setLoading(true)
-    if (res.status != 201)
+    if (res.status != 201) {
+      setLoading(false)
       return toast('Erro na Criação do Cadastro', {
         position: 'bottom-right',
       })
+    }
     setLoading(false)
     isSubscribe()
     return toast('Cadastro Criado com sucesso', {
