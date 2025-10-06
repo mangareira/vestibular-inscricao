@@ -3,10 +3,11 @@ import CourseList from '@/components/courseList/CourseList'
 import Header from '@/components/header/header'
 import LoginModal from '@/components/LoginModal/Modal'
 import SignupModal from '@/components/SignupModal/Modal'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Course } from '@/utils/types/course'
-import { AnimatePresence } from 'framer-motion'
 import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const sampleCourses: Course[] = [
   {
@@ -67,6 +68,7 @@ export default function Page() {
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
   )
+  const MotionCard = motion(Card)
 
   return (
     <>
@@ -92,23 +94,51 @@ export default function Page() {
 
         <CourseList courses={filtered} onApply={(course) => setSelectedCourse(course)} />
       </main>
-      <AnimatePresence mode="wait">
-        {subscribe ? (
-          <LoginModal
-            key="login-modal"
-            isSubscribe={() => setSubscribe(false)}
-            course={selectedCourse}
-            onClose={() => setSelectedCourse(null)}
-          />
-        ) : (
-          <SignupModal
-            key="signup-modal"
-            isSubscribe={() => setSubscribe(true)}
-            course={selectedCourse}
-            onClose={() => setSelectedCourse(null)}
-          />
-        )}
-      </AnimatePresence>
+      {selectedCourse ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setSelectedCourse(null)}
+          ></div>
+          <MotionCard
+            layout
+            className="relative z-10 w-full max-w-3xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl"
+            transition={{ duration: 0.35, ease: 'easeInOut' }}
+          >
+            <AnimatePresence mode="wait">
+              {subscribe ? (
+                <motion.div
+                  key="login-modal"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <LoginModal
+                    isSubscribe={() => setSubscribe(false)}
+                    course={selectedCourse}
+                    onClose={() => setSelectedCourse(null)}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="signup-modal"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <SignupModal
+                    isSubscribe={() => setSubscribe(true)}
+                    course={selectedCourse}
+                    onClose={() => setSelectedCourse(null)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </MotionCard>
+        </div>
+      ) : null}
     </>
   )
 }

@@ -19,7 +19,9 @@ const app = new Hono()
       const user = await prisma.user.create({
         data: {...form, password: hashPassword}
       })
-      
+
+      c.status(201)
+
       return c.json(user)
     }
   )
