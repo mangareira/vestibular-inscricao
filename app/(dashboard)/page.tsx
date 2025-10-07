@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Course } from '@/utils/types/course'
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import PaymentCardModal from '@/components/PaymentCard/Modal'
 
 const sampleCourses: Course[] = [
   {
@@ -64,6 +65,7 @@ export default function Page() {
   const [query, setQuery] = useState('')
   const [subscribe, setSubscribe] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [isLogin, SetIsLogin] = useState(false)
 
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
@@ -106,34 +108,41 @@ export default function Page() {
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
             <AnimatePresence mode="wait">
-              {subscribe ? (
-                <motion.div
-                  key="login-modal"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <LoginModal
-                    isSubscribe={() => setSubscribe(false)}
-                    course={selectedCourse}
-                    onClose={() => setSelectedCourse(null)}
-                  />
-                </motion.div>
+              {isLogin ? (
+                <PaymentCardModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
               ) : (
-                <motion.div
-                  key="signup-modal"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <SignupModal
-                    isSubscribe={() => setSubscribe(true)}
-                    course={selectedCourse}
-                    onClose={() => setSelectedCourse(null)}
-                  />
-                </motion.div>
+                <>
+                  {subscribe ? (
+                    <motion.div
+                      key="login-modal"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <LoginModal
+                        isSubscribe={() => setSubscribe(false)}
+                        course={selectedCourse}
+                        onClose={() => setSelectedCourse(null)}
+                        isLogin={() => SetIsLogin(true)}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="signup-modal"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <SignupModal
+                        isSubscribe={() => setSubscribe(true)}
+                        course={selectedCourse}
+                        onClose={() => setSelectedCourse(null)}
+                      />
+                    </motion.div>
+                  )}
+                </>
               )}
             </AnimatePresence>
           </MotionCard>

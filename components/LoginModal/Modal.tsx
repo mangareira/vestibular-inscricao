@@ -14,10 +14,12 @@ export default function LoginModal({
   course,
   onClose,
   isSubscribe,
+  isLogin,
 }: {
   course: Course | null
   onClose: () => void
   isSubscribe: () => void
+  isLogin: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [isLoading, setLoading] = useState(false)
@@ -50,7 +52,7 @@ export default function LoginModal({
     }
 
     setLoading(false)
-    onClose()
+    isLogin()
     return toast('Login realizado com sucesso', {
       position: 'top-right',
       description: <span className="text-green-500">{json.message}</span>,
