@@ -1,4 +1,5 @@
 import { Course } from '@/utils/types/course'
+import { Course as TypeCourse } from '@/app/generated/prisma'
 import { useState, useEffect } from 'react'
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
@@ -10,9 +11,11 @@ import { PaymentTypeCard } from '../ui/payment-card'
 export default function PaymentCardModal({
   course,
   onClose,
+  setPayment,
 }: {
   course: Course | null
   onClose: () => void
+  setPayment: (course: TypeCourse) => void
 }) {
   const [open, setOpen] = useState(false)
   const [isLoading, setLoading] = useState(false)
@@ -37,19 +40,46 @@ export default function PaymentCardModal({
     }
 
     setLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1200))
+    const res = await client.api.payment.create.$post({
+      json: { paymentForm: paymentType, course_name: course.title },
+      cookie: {
+        id: document.cookie.split(';')[0].split('=')[1],
+      },
+    })
+    const json = await res.json()
     setLoading(false)
 
-    toast('Inscrição realizada com sucesso', {
-      position: 'bottom-right',
-      description: (
-        <span className="text-green-500">
-          Pagamento selecionado: {paymentType === 'pix' ? 'Pix' : 'Boleto'}
-        </span>
-      ),
-    })
-
-    onClose()
+    if (res.status !== 201) {
+      return toast('Erro na criação do pagamento', {
+        position: 'top-right',
+        description: <span className="text-red-500">{json.message}</span>,
+      })
+    }
+    if ('course' in json) {
+      // Aqui o TypeScript sabe que é o tipo de sucesso
+      // Normaliza as datas (string -> Date) antes de passar para setPayment
+      const serverCourse = json.course
+      const normalizedCourse: TypeCourse = {
+        ...serverCourse,
+        createdAt: new Date(serverCourse.createdAt),
+        updatedAt: new Date(serverCourse.updatedAt),
+      }
+      setPayment(normalizedCourse) // Passa o course para setPayment
+      toast('Pagamento criado com sucesso', {
+        position: 'bottom-right',
+        description: (
+          <span className="text-green-500">
+            Pagamento selecionado: {paymentType === 'pix' ? 'Pix' : 'Boleto'}
+          </span>
+        ),
+      })
+    } else {
+      // Fallback caso a resposta não tenha a estrutura esperada
+      toast('Resposta inesperada do servidor', {
+        position: 'top-right',
+        description: <span className="text-red-500">Estrutura de resposta inválida</span>,
+      })
+    }
   }
 
   return (

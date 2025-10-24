@@ -35,6 +35,7 @@ model User {
   uf             String         @db.Char(2)
   email          String         @unique
   password       String
+  courses        Course[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -60,4 +61,25 @@ enum Disability {
   deficiencia_motora
   deficiencia_auditiva
   paralisia_cerebral
+}
+
+model Course {
+  id             String       @id @default(uuid())
+  name           String
+  value          Float
+  pixQrCodeId    String?
+  pixTransaction String
+  pixCopiaECola  String
+  status         CourseStatus @default(PENDING)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+enum CourseStatus {
+  PENDING
+  RECEIVED
+  CONFIRMED
+  OVERDUE
 }

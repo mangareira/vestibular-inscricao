@@ -9,6 +9,8 @@ import { Course } from '@/utils/types/course'
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PaymentCardModal from '@/components/PaymentCard/Modal'
+import { Course as TypeCourse } from '../generated/prisma'
+import PaymentTypeModal from '@/components/PaymentTypeModal/Modal'
 
 const sampleCourses: Course[] = [
   {
@@ -66,6 +68,7 @@ export default function Page() {
   const [subscribe, setSubscribe] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isLogin, SetIsLogin] = useState(false)
+  const [payment, setPayment] = useState<TypeCourse | null>(null)
 
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
@@ -109,7 +112,21 @@ export default function Page() {
           >
             <AnimatePresence mode="wait">
               {isLogin ? (
-                <PaymentCardModal course={selectedCourse} onClose={() => setSelectedCourse(null)} />
+                <>
+                  {payment != null ? (
+                    <PaymentTypeModal
+                      payment={payment}
+                      onClose={() => setSelectedCourse(null)}
+                      course={selectedCourse}
+                    />
+                  ) : (
+                    <PaymentCardModal
+                      course={selectedCourse}
+                      onClose={() => setSelectedCourse(null)}
+                      setPayment={setPayment}
+                    />
+                  )}
+                </>
               ) : (
                 <>
                   {subscribe ? (

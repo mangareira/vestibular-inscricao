@@ -33,21 +33,51 @@ const signUpSchema = z.object({
     ])
     .optional(),
 
-  // Informações adicionais
   rg: z
     .string()
-    .min(5, { message: "RG inválido" }),
+    .min(5, { message: "RG inválido" })
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      return digits.length >= 7 && digits.length <= 9
+    }, { message: 'RG inválido' }),
   cpf: z
     .string()
-    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: "CPF inválido" }),
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      if (!/^\d{11}$/.test(digits)) return false
+
+      const cpfNums = digits.split('').map((d) => parseInt(d, 10))
+      const allEqual = cpfNums.every((n) => n === cpfNums[0])
+      if (allEqual) return false
+
+      const calcCheck = (slice: number) => {
+        const factor = slice + 1
+        let total = 0
+        for (let i = 0; i < slice; i++) {
+          total += cpfNums[i] * (factor - i)
+        }
+        const mod = (total * 10) % 11
+        return mod === 10 ? 0 : mod
+      }
+
+      const d1 = calcCheck(9)
+      const d2 = calcCheck(10)
+      return d1 === cpfNums[9] && d2 === cpfNums[10]
+    }, { message: 'CPF inválido' }),
   phone: z
     .string()
-    .regex(/^\(\d{2}\) \d{5}-\d{4}$/, { message: "Telefone inválido" }),
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      return digits.length === 10 || digits.length === 11 || (digits.startsWith('55') && (digits.length === 12 || digits.length === 13))
+    }, { message: 'Telefone inválido' }),
 
   // Endereço
   cep: z
     .string()
-    .regex(/^\d{5}-\d{3}$/, { message: "CEP inválido" }),
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      return /^\d{8}$/.test(digits)
+    }, { message: 'CEP inválido' }),
   street: z
     .string()
     .min(3, { message: "Logradouro obrigatório" }),

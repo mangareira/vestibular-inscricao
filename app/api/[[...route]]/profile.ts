@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { setCookie } from "hono/cookie"
 import {zValidator} from "@hono/zod-validator"
 import signUpSchema from "@/utils/schemas/signup.schema";
 import prisma from "@/lib/prisma";
@@ -54,6 +55,7 @@ const app = new Hono()
       }
       
       c.status(200)
+      setCookie(c, "id", user.id)
 
       return c.json({message: "login realizado com sucesso"})
     }
