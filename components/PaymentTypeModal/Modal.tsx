@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card'
+import { CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card'
 import { Button } from '../ui/button'
 import { toast } from 'sonner'
 import type { Course } from '@/utils/types/course'
@@ -32,10 +32,18 @@ export default function PaymentTypeModal({
 
   const copyPix = async () => {
     try {
-      await navigator.clipboard.writeText(payment.pixCopiaECola)
-      toast.success('Código Pix copiado com sucesso!')
+      await navigator.clipboard.writeText(
+        payment.identificationField ? payment.identificationField : payment.pixCopiaECola
+      )
+      toast.success(
+        payment.identificationField
+          ? 'Linha digitavel copiada com sucesso!'
+          : 'Código Pix copiado com sucesso!'
+      )
     } catch {
-      toast.error('Erro ao copiar Pix')
+      toast.error(
+        payment.identificationField ? 'Erro ao copiar linha digitavel' : 'Erro ao copiar Pix'
+      )
     }
   }
 
@@ -52,15 +60,15 @@ export default function PaymentTypeModal({
           </Button>
         </CardTitle>
         <CardDescription className="text-gray-600">
-          {payment.pixTransaction
+          {!payment.identificationField
             ? 'Finalize seu pagamento via Pix'
             : 'Finalize seu pagamento via Boleto'}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center gap-6 py-6">
+      <CardContent className="flex max-h-[70vh] flex-col items-center gap-6 overflow-y-scroll py-6">
         {/* Pagamento Pix */}
-        {payment.pixTransaction && (
+        {!payment.identificationField && (
           <>
             <div className="rounded-lg border bg-gray-50 p-4 shadow-sm">
               <Image
@@ -87,30 +95,36 @@ export default function PaymentTypeModal({
         )}
 
         {/* Pagamento Boleto */}
-        {!payment.pixTransaction && (
-          <div className="flex flex-col items-center gap-4">
+        {payment.identificationField && payment.bankSlipUrl && (
+          <div className="flex w-full flex-col items-center gap-4">
+            <p className="text-lg font-semibold text-gray-700">Linha Digitável</p>
             <p className="rounded-md bg-gray-100 px-4 py-2 font-mono text-sm break-all text-gray-800">
-              {payment.pixCopiaECola}
+              {payment.identificationField}
             </p>
-            <a
-              href={`/api/boleto/${payment.id}`}
-              target="_blank"
-              className="text-sm font-medium text-emerald-600 hover:underline"
-            >
-              Ver boleto
-            </a>
+
+            {/* Botões */}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={copyPix}
+                className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                <Copy className="h-4 w-4" />
+                Copiar linha digitável
+              </Button>
+            </div>
+
+            {/* PDF do boleto (Asaas) */}
+            <div className="mt-4 h-[600px] w-full overflow-hidden rounded-lg border shadow-inner">
+              <iframe
+                src={payment.bankSlipUrl}
+                className="h-full w-full"
+                title="Boleto bancário"
+                allow="clipboard-write"
+              />
+            </div>
           </div>
         )}
       </CardContent>
-
-      <CardFooter className="flex justify-end">
-        <Button
-          onClick={onClose}
-          className="rounded-md border bg-white px-4 py-2 text-slate-500 hover:bg-gray-100"
-        >
-          Fechar
-        </Button>
-      </CardFooter>
     </>
   )
 }

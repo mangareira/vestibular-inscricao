@@ -64,17 +64,19 @@ enum Disability {
 }
 
 model Course {
-  id             String       @id @default(uuid())
-  name           String
-  value          Float
-  pixQrCodeId    String?
-  pixTransaction String
-  pixCopiaECola  String
-  status         CourseStatus @default(PENDING)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                  String       @id @default(uuid())
+  name                String
+  value               Float
+  pixQrCodeId         String?
+  pixTransaction      String
+  pixCopiaECola       String
+  bankSlipUrl         String?
+  identificationField String?
+  status              CourseStatus @default(PENDING)
+  userId              String
+  user                User         @relation(fields: [userId], references: [id])
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 }
 
 enum CourseStatus {

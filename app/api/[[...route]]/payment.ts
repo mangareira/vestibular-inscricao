@@ -68,6 +68,8 @@ const app = new Hono()
         pixQrCodeId: string,
         id: string,
         status: "CONFIRMED" | "OVERDUE" | "PENDING" | "RECEIVED",
+        bankSlipUrl: string | undefined,
+
       }>(`payments`, {
         customer: client_id,
         billingType: values.paymentForm === 'pix' ? 'PIX' : 'BOLETO',
@@ -82,6 +84,17 @@ const app = new Hono()
 
       const pixQrCodeId = await api.get<{encodedImage: string, payload: string}>(`payments/${payment.id}/pixQrCode`)
 
+      let boleto: {bankSlipUrl?: string; identificationField?: string} | undefined;
+
+      if (values.paymentForm === "boleto") {
+        const getBoleto = await api.get<{bankSlipUrl: string; identificationField: string }>(`payments/${payment.id}/identificationField`)
+        
+        boleto = {
+          identificationField: getBoleto.identificationField,
+          bankSlipUrl: payment.bankSlipUrl
+        }
+      }
+
       await prisma.user.update({
         where: {
           id: user.id
@@ -90,6 +103,8 @@ const app = new Hono()
           courses: {
             create: {
               name: values.course_name,
+              identificationField: boleto?.identificationField,
+              bankSlipUrl: boleto?.bankSlipUrl,
               pixQrCodeId: pixQrCodeId.encodedImage,
               pixCopiaECola: pixQrCodeId.payload,
               pixTransaction: payment.id,

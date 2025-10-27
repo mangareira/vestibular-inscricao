@@ -107,7 +107,7 @@ export default function Page() {
           ></div>
           <MotionCard
             layout
-            className="relative z-10 w-full max-w-3xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl"
+            className="relative z-10 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl"
             transition={{ duration: 0.35, ease: 'easeInOut' }}
           >
             <AnimatePresence mode="wait">
