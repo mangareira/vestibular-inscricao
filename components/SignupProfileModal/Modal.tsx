@@ -1,5 +1,4 @@
-import { Course } from '@/utils/types/course'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -24,17 +23,15 @@ import { client } from '@/lib/hono'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
-export default function SignupModal({
-  course,
+export default function SignUpProfileModal({
   onClose,
-  isSubscribe,
+  subscribeProfile,
 }: {
-  course: Course | null
   onClose: () => void
-  isSubscribe: () => void
+  subscribeProfile: () => void
 }) {
-  const [open, setOpen] = useState(false)
   const [isLoading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
   const {
     register,
     handleSubmit,
@@ -52,16 +49,14 @@ export default function SignupModal({
     },
   })
 
-  useEffect(() => setOpen(!!course), [course])
-
-  if (!open || !course) {
+  if (open) {
     if (typeof window !== 'undefined') {
       document.body.style.overflowY = 'scroll'
     }
-
     return null
+  } else {
+    document.body.style.overflowY = 'hidden'
   }
-  document.body.style.overflowY = 'hidden'
 
   const onSubmit = async (data: SignUpForm) => {
     const res = await client.api.profile.create.$post({ json: data })
@@ -73,7 +68,8 @@ export default function SignupModal({
       })
     }
     setLoading(false)
-    isSubscribe()
+    subscribeProfile()
+    setOpen(true)
     return toast('Cadastro Criado com sucesso', {
       position: 'bottom-right',
     })
@@ -83,7 +79,7 @@ export default function SignupModal({
     <>
       <CardHeader>
         <CardTitle className="flex items-start justify-between gap-4">
-          <div className="text-xl font-semibold">Inscrição — {course.title}</div>
+          <div className="text-xl font-semibold">Criar conta</div>
           <Button onClick={onClose} className="bg-white text-slate-500 hover:bg-gray-100">
             Fechar
           </Button>
@@ -324,7 +320,7 @@ export default function SignupModal({
       <CardFooter className="flex justify-between">
         <span
           className="cursor-pointer text-sm text-slate-400 hover:text-slate-800"
-          onClick={isSubscribe}
+          onClick={subscribeProfile}
         >
           Possui cadastro! Faça login.
         </span>

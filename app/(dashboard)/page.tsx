@@ -6,11 +6,14 @@ import SignupModal from '@/components/SignupModal/Modal'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Course } from '@/utils/types/course'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PaymentCardModal from '@/components/PaymentCard/Modal'
 import { Course as TypeCourse } from '../generated/prisma'
 import PaymentTypeModal from '@/components/PaymentTypeModal/Modal'
+import LoginProfileModal from '@/components/LoginProfileModal/Modal'
+import { useSyncPayments } from '@/utils/hooks/useSyncPayments'
+import SignUpProfileModal from '@/components/SignupProfileModal/Modal'
 
 const sampleCourses: Course[] = [
   {
@@ -67,17 +70,49 @@ export default function Page() {
   const [query, setQuery] = useState('')
   const [subscribe, setSubscribe] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
-  const [isLogin, SetIsLogin] = useState(false)
-  const [payment, setPayment] = useState<TypeCourse | null>(null)
+  const [isLogin, setIsLogin] = useState(false)
+  const [payments, setPayments] = useState<Record<string, TypeCourse | null>>({})
+  const [loginProfile, setLoginProfile] = useState<boolean>(false)
+  const [subscribeProfile, setSubscribeProfile] = useState<boolean>(true)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('payments')
+    if (stored) {
+      setPayments(JSON.parse(stored))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedCourse || !subscribe || !isLogin || !payments || !loginProfile) {
+      if (typeof window !== 'undefined') {
+        document.body.style.overflowY = 'scroll'
+      }
+      return
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLogin, loginProfile, JSON.stringify(payments), selectedCourse?.id, subscribe])
+
+  useEffect(() => {
+    localStorage.setItem('payments', JSON.stringify(payments))
+  }, [payments])
 
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
   )
   const MotionCard = motion.create(Card)
 
+  const handleSetPayment = (courseId: string, payment: TypeCourse) => {
+    setPayments((prev) => ({
+      ...prev,
+      [courseId]: payment, // guarda o pagamento desse curso
+    }))
+  }
+
+  useSyncPayments()
+
   return (
     <>
-      <Header />
+      <Header setLoginProfile={setLoginProfile} />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -97,8 +132,46 @@ export default function Page() {
           </div>
         </div>
 
-        <CourseList courses={filtered} onApply={(course) => setSelectedCourse(course)} />
+        <CourseList
+          courses={filtered}
+          onApply={(course) => {
+            setSelectedCourse(course)
+          }}
+        />
       </main>
+      {loginProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setLoginProfile(false)}
+          ></div>
+          {subscribeProfile ? (
+            <MotionCard
+              layout
+              className="relative z-10 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl"
+              transition={{ duration: 0.35 }}
+            >
+              <LoginProfileModal
+                onClose={() => setLoginProfile(false)}
+                setLoginProfile={setLoginProfile}
+                setIsLogin={setIsLogin}
+                subscribeProfile={() => setSubscribeProfile(false)}
+              />
+            </MotionCard>
+          ) : (
+            <MotionCard
+              layout
+              className="relative z-10 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl"
+              transition={{ duration: 0.35 }}
+            >
+              <SignUpProfileModal
+                onClose={() => setLoginProfile(false)}
+                subscribeProfile={() => setSubscribeProfile(true)}
+              />
+            </MotionCard>
+          )}
+        </div>
+      )}
       {selectedCourse ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -113,9 +186,9 @@ export default function Page() {
             <AnimatePresence mode="wait">
               {isLogin ? (
                 <>
-                  {payment != null ? (
+                  {payments[selectedCourse.id] != null ? (
                     <PaymentTypeModal
-                      payment={payment}
+                      payment={payments[selectedCourse.id]}
                       onClose={() => setSelectedCourse(null)}
                       course={selectedCourse}
                     />
@@ -123,7 +196,7 @@ export default function Page() {
                     <PaymentCardModal
                       course={selectedCourse}
                       onClose={() => setSelectedCourse(null)}
-                      setPayment={setPayment}
+                      setPayment={(payment) => handleSetPayment(selectedCourse.id, payment)}
                     />
                   )}
                 </>
@@ -141,7 +214,7 @@ export default function Page() {
                         isSubscribe={() => setSubscribe(false)}
                         course={selectedCourse}
                         onClose={() => setSelectedCourse(null)}
-                        isLogin={() => SetIsLogin(true)}
+                        isLogin={() => setIsLogin(true)}
                       />
                     </motion.div>
                   ) : (

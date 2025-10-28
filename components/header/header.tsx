@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { Button } from '../ui/button'
 
-export default function Header() {
+export default function Header({ setLoginProfile }: { setLoginProfile: (open: boolean) => void }) {
   return (
     <header className="bg-[#0574ac] text-white shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
@@ -15,7 +15,12 @@ export default function Header() {
           </div>
         </div>
         <nav>
-          <Button className="bg-white/10 px-6 py-5 hover:bg-white/20">Entrar</Button>
+          <Button
+            className="bg-white/10 px-6 py-5 hover:bg-white/20"
+            onClick={() => setLoginProfile(true)}
+          >
+            Entrar
+          </Button>
         </nav>
       </div>
     </header>

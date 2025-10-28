@@ -24,7 +24,7 @@ export default function PaymentTypeModal({
 
   if (!open || !course || !payment) {
     if (typeof window !== 'undefined') {
-      document.body.style.overflowY = 'auto'
+      document.body.style.overflowY = 'scroll'
     }
     return null
   }

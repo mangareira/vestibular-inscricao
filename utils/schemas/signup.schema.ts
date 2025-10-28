@@ -38,7 +38,7 @@ const signUpSchema = z.object({
     .min(5, { message: "RG inválido" })
     .refine((val) => {
       const digits = val.replace(/\D/g, '')
-      return digits.length >= 7 && digits.length <= 9
+      return digits.length >= 13 && digits.length <= 15
     }, { message: 'RG inválido' }),
   cpf: z
     .string()

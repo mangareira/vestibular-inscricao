@@ -13,6 +13,7 @@ interface ErrorResponse {
 interface SuccessResponse {
   message: string;
   course: Course;
+  payments: Course[]
 }
 
 const app = new Hono()
@@ -130,5 +131,60 @@ const app = new Hono()
       return c.json({ message: 'deu certo', course: createdCourse } as SuccessResponse)
     }
   )
+  .get(
+  '/get-payments',
+  zValidator('cookie', z.object({
+    id: z.uuid(),
+  })),
+  async (c) => {
+    const { id } = c.req.valid('cookie')
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { courses: true },
+    })
+
+    if (!user) {
+      c.status(404)
+      return c.json({ message: 'Usuário não encontrado' } as ErrorResponse)
+    }
+
+    const updatedCourses: Course[] = []
+
+    for (const course of user.courses) {
+      try {
+        if (!course.pixTransaction) continue
+
+        // Busca o status atualizado no Asaas
+        const paymentData = await api.get<{
+          id: string
+          status: 'CONFIRMED' | 'OVERDUE' | 'PENDING' | 'RECEIVED'
+        }>(`payments/${course.pixTransaction}`)
+
+        if (!paymentData) continue
+
+        // Atualiza no banco se mudou
+        if (course.status !== paymentData.status) {
+          const updated = await prisma.course.update({
+            where: { id: course.id },
+            data: { status: paymentData.status },
+          })
+          updatedCourses.push(updated)
+        } else {
+          updatedCourses.push(course)
+        }
+      } catch (err) {
+        console.error('Erro ao atualizar pagamento:', err)
+        updatedCourses.push(course)
+      }
+    }
+
+    c.status(200)
+    return c.json({
+      message: 'Pagamentos atualizados com sucesso',
+      payments: updatedCourses,
+    } as SuccessResponse)
+  }
+)
 
 export default app
