@@ -34,14 +34,22 @@ const app = new Hono()
       const user =  await prisma.user.findUnique({
         where: {
           id,
+        },
+        include: {
+          courses: true
         }
       })
 
+      
       if(!user) {
         c.status(404)
         return c.json({message: "Usuario não encontrado"} as ErrorResponse)
       }
-
+    
+      if(user.courses.length >= 1) {
+        c.status(400)
+        return c.json({message: "O Usuario so pode se inscrever em um curso"} as ErrorResponse)
+      } 
       const customers = await api.get<Array<{ id: string }>>(
         `customers?cpfCnpj=${user.cpf}`
       )
@@ -185,6 +193,60 @@ const app = new Hono()
       payments: updatedCourses,
     } as SuccessResponse)
   }
-)
+  )
+  .delete(
+    "/delete-payment/:id",
+    zValidator(
+      "param",
+      z.object({
+        id: z.string()
+      })
+    ),
+    zValidator(
+      "cookie",
+      z.object({
+        id: z.uuid()
+      })
+    ),
+    async (c) => {
+      const { id: id_payment } = c.req.valid("param")
+      const { id: id_user } = c.req.valid("cookie")
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: id_user,
+        }
+      })
+
+      if (!user) {
+        c.status(404)
+        return c.json({ message: 'Usuário não encontrado' } as ErrorResponse)
+      }
+
+      const payment = await api.delete<{deleted: boolean}>(`payments/${id_payment}`)
+
+      if(!payment.deleted) {
+        c.status(400)
+        return c.json({ message: 'Erro ao deletar o pagamento' } as ErrorResponse)
+      }
+
+      await prisma.user.update({
+        where: {
+          id: id_user
+        }, 
+        data: {
+          courses: {
+            deleteMany: {
+              pixTransaction: id_payment
+            }
+          },
+          updatedAt: new Date()
+        }
+      })
+
+      c.status(200)
+      return c.json({ message: "Sucesso ao cancelar a inscrição" } as SuccessResponse)
+    }
+  )
 
 export default app

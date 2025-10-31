@@ -93,8 +93,9 @@ async function request<T = unknown>(
 }
 
 export const get = <T = unknown>(url: string, opts?: ApiOptions) => request<T>(url, { method: 'GET' }, opts)
+export const del = <T = unknown>(url: string, opts?: ApiOptions) => request<T>(url, { method: 'DELETE' }, opts)
 export const post = <T = unknown>(url: string, body?: unknown, opts?: ApiOptions) =>
   request<T>(url, { method: 'POST', body: body ? JSON.stringify(body) : undefined }, opts)
 
-const api = { request, get, post, ApiError }
+const api = { request, get, post, 'delete': del, ApiError }
 export default api

@@ -7,7 +7,8 @@ import { toast } from 'sonner'
 import type { Course } from '@/utils/types/course'
 import type { Course as TypeCourse } from '@/app/generated/prisma'
 import Image from 'next/image'
-import { Copy } from 'lucide-react'
+import { Copy, Loader2, TicketX } from 'lucide-react'
+import { client } from '@/lib/hono'
 
 export default function PaymentTypeModal({
   course,
@@ -19,6 +20,7 @@ export default function PaymentTypeModal({
   onClose: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const [isLoading, setLoading] = useState(false)
 
   useEffect(() => setOpen(!!course), [course])
 
@@ -45,6 +47,32 @@ export default function PaymentTypeModal({
         payment.identificationField ? 'Erro ao copiar linha digitavel' : 'Erro ao copiar Pix'
       )
     }
+  }
+
+  const cancelPix = async () => {
+    setLoading(true)
+    const res = await client.api.payment['delete-payment'][':id'].$delete({
+      param: {
+        id: payment.pixTransaction,
+      },
+      cookie: {
+        id: document.cookie.split(';')[0].split('=')[1],
+      },
+    })
+
+    const json = await res.json()
+    setLoading(false)
+
+    if (res.status !== 200) {
+      return toast('Erro ao cancelar o pagamento', {
+        position: 'top-right',
+        description: <span className="text-red-500">{json.message}</span>,
+      })
+    }
+    onClose()
+    return toast('Pagamento cancelado com sucesso', {
+      position: 'bottom-right',
+    })
   }
 
   return (
@@ -83,13 +111,27 @@ export default function PaymentTypeModal({
               <p className="max-w-sm text-center text-sm break-all text-gray-700">
                 {payment.pixCopiaECola}
               </p>
-              <Button
-                onClick={copyPix}
-                className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                <Copy className="h-4 w-4" />
-                Copiar código Pix
-              </Button>
+              <div className="flex flex-row gap-2">
+                <Button
+                  onClick={copyPix}
+                  className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copiar código Pix
+                </Button>
+                <Button
+                  onClick={cancelPix}
+                  className={`flex items-center gap-2 bg-red-600 text-white ${isLoading ? 'bg-red-300' : 'hover:bg-red-700'}`}
+                  disabled={isLoading}
+                >
+                  <TicketX className="h-4 w-4" />
+                  {isLoading ? (
+                    <Loader2 className="animate-spin" size={24} />
+                  ) : (
+                    'Cancelar pagamento'
+                  )}
+                </Button>
+              </div>
             </div>
           </>
         )}

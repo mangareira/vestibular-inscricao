@@ -12,7 +12,6 @@ import PaymentCardModal from '@/components/PaymentCard/Modal'
 import { Course as TypeCourse } from '../generated/prisma'
 import PaymentTypeModal from '@/components/PaymentTypeModal/Modal'
 import LoginProfileModal from '@/components/LoginProfileModal/Modal'
-import { useSyncPayments } from '@/utils/hooks/useSyncPayments'
 import SignUpProfileModal from '@/components/SignupProfileModal/Modal'
 
 const sampleCourses: Course[] = [
@@ -76,13 +75,6 @@ export default function Page() {
   const [subscribeProfile, setSubscribeProfile] = useState<boolean>(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem('payments')
-    if (stored) {
-      setPayments(JSON.parse(stored))
-    }
-  }, [])
-
-  useEffect(() => {
     if (!selectedCourse || !subscribe || !isLogin || !payments || !loginProfile) {
       if (typeof window !== 'undefined') {
         document.body.style.overflowY = 'scroll'
@@ -91,10 +83,6 @@ export default function Page() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLogin, loginProfile, JSON.stringify(payments), selectedCourse?.id, subscribe])
-
-  useEffect(() => {
-    localStorage.setItem('payments', JSON.stringify(payments))
-  }, [payments])
 
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
@@ -107,8 +95,6 @@ export default function Page() {
       [courseId]: payment, // guarda o pagamento desse curso
     }))
   }
-
-  useSyncPayments()
 
   return (
     <>
