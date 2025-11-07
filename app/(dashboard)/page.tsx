@@ -13,66 +13,18 @@ import { Course as TypeCourse } from '../generated/prisma'
 import PaymentTypeModal from '@/components/PaymentTypeModal/Modal'
 import LoginProfileModal from '@/components/LoginProfileModal/Modal'
 import SignUpProfileModal from '@/components/SignupProfileModal/Modal'
-
-const sampleCourses: Course[] = [
-  {
-    id: 'c1',
-    title: 'Técnico em Informática',
-    subtitle: 'Presencial - 700 horas',
-    seats: 120,
-    price: 40,
-    startDate: '2025-10-03',
-  },
-  {
-    id: 'c2',
-    title: 'Administração',
-    subtitle: 'EAD - 1800 horas',
-    seats: 80,
-    price: 0,
-    startDate: '2025-11-01',
-  },
-  {
-    id: 'c3',
-    title: 'Engenharia Civil',
-    subtitle: 'Presencial - Bacharelado',
-    seats: 40,
-    price: 0,
-    startDate: '2026-03-15',
-  },
-  {
-    id: 'c4',
-    title: 'Técnico em Informática',
-    subtitle: 'Presencial - 700 horas',
-    seats: 120,
-    price: 40,
-    startDate: '2025-10-03',
-  },
-  {
-    id: 'c5',
-    title: 'Administração',
-    subtitle: 'EAD - 1800 horas',
-    seats: 80,
-    price: 0,
-    startDate: '2025-11-01',
-  },
-  {
-    id: 'c6',
-    title: 'Engenharia Civil',
-    subtitle: 'Presencial - Bacharelado',
-    seats: 40,
-    price: 0,
-    startDate: '2026-03-15',
-  },
-]
+import { useUserPayments } from '@/utils/hooks/useUserPayments'
+import { sampleCourses } from '@/utils/constants/sampleCourses'
 
 export default function Page() {
   const [query, setQuery] = useState('')
   const [subscribe, setSubscribe] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isLogin, setIsLogin] = useState(false)
-  const [payments, setPayments] = useState<Record<string, TypeCourse | null>>({})
   const [loginProfile, setLoginProfile] = useState<boolean>(false)
   const [subscribeProfile, setSubscribeProfile] = useState<boolean>(true)
+
+  const { payments, setPayments } = useUserPayments(isLogin)
 
   useEffect(() => {
     if (!selectedCourse || !subscribe || !isLogin || !payments || !loginProfile) {
@@ -83,6 +35,14 @@ export default function Page() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLogin, loginProfile, JSON.stringify(payments), selectedCourse?.id, subscribe])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (document.cookie.split(';')[0].split('=')[1]) {
+        setIsLogin(true)
+      }
+    }
+  }, [])
 
   const filtered = sampleCourses.filter((c) =>
     (c.title + ' ' + c.subtitle).toLowerCase().includes(query.toLowerCase())
@@ -98,7 +58,7 @@ export default function Page() {
 
   return (
     <>
-      <Header setLoginProfile={setLoginProfile} />
+      <Header setLoginProfile={setLoginProfile} isLogin={isLogin} />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -177,6 +137,7 @@ export default function Page() {
                       payment={payments[selectedCourse.id]}
                       onClose={() => setSelectedCourse(null)}
                       course={selectedCourse}
+                      setPayments={setPayments}
                     />
                   ) : (
                     <PaymentCardModal

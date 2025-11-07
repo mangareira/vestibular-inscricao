@@ -14,10 +14,12 @@ export default function PaymentTypeModal({
   course,
   onClose,
   payment,
+  setPayments,
 }: {
   course: Course | null
   payment: TypeCourse | null
   onClose: () => void
+  setPayments: React.Dispatch<React.SetStateAction<Record<string, TypeCourse | null>>>
 }) {
   const [open, setOpen] = useState(false)
   const [isLoading, setLoading] = useState(false)
@@ -69,6 +71,13 @@ export default function PaymentTypeModal({
         description: <span className="text-red-500">{json.message}</span>,
       })
     }
+    setPayments((prev) => {
+      const updated = { ...prev }
+      if (course) delete updated[course.id]
+      localStorage.setItem('payments', JSON.stringify(updated))
+      return updated
+    })
+
     onClose()
     return toast('Pagamento cancelado com sucesso', {
       position: 'bottom-right',
